@@ -8,7 +8,7 @@ pub struct Parser {
 }
 
 #[derive(Debug)]
-enum ParserError {
+pub enum ParserError {
     UnexpectedToken(Token, Token),
     UnexpectedEof,
     InvalidStartOfStmt,
@@ -18,7 +18,7 @@ enum ParserError {
 type Result<T> = std::result::Result<T, ParserError>;
 
 impl Parser {
-    fn new(tokens: Vec<Token>) -> Self {
+    pub fn new(tokens: Vec<Token>) -> Self {
         Self {
             tokens,
             current: 0,
