@@ -1,3 +1,10 @@
+#![feature(let_chains)]
+
+mod lexer;
+mod token;
+
+use lexer::Lexer;
+
 fn main() {
-    println!("Hello, world!");
+    env_logger::init();
 }
