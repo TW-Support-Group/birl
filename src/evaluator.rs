@@ -9,7 +9,7 @@ pub struct Evaluator<'a> {
 }
 
 impl<'a> Evaluator<'a> {
-    fn new(output_writer: &'a mut dyn Write, error_writer: &'a mut dyn Write) -> Self {
+    pub fn new(output_writer: &'a mut dyn Write, error_writer: &'a mut dyn Write) -> Self {
         Self {
             output_writer,
             error_writer,
