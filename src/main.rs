@@ -6,26 +6,64 @@ mod lexer;
 mod parser;
 mod token;
 
-use std::fs;
-use std::io;
-
 use evaluator::Evaluator;
 use lexer::Lexer;
 use parser::Parser;
 
-fn main() {
-    env_logger::init();
+use xitca_web::{
+    body::ResponseBody,
+    handler::{handler_service, json::LazyJson},
+    http::Response,
+    middleware::Logger,
+    route::post,
+    App,
+};
 
-    // TODO: Expose the interpreter over HTTP
-    // You can use axum for this, though a more lightweight server would be more appropriate.
+#[derive(serde::Deserialize)]
+struct BirlRequest {
+    code: String,
+}
 
-    let file_contents = fs::read_to_string("test.birl").unwrap();
-    let tokens = Lexer::new(&file_contents).lex().unwrap();
+async fn index(
+    req: LazyJson<BirlRequest>,
+) -> Result<Response<ResponseBody>, xitca_web::error::Error> {
+    let BirlRequest { code } = req.deserialize()?;
+
+    // TODO: Handle these errors.
+    let tokens = Lexer::new(&code).lex().unwrap();
     let ast = Parser::new(tokens).parse().unwrap();
 
-    let mut out = io::stdout();
-    let mut err = io::stderr();
+    let mut out = Vec::new();
+    let mut err = Vec::new();
     let mut evaluator = Evaluator::new(&mut out, &mut err);
 
     evaluator.eval(ast);
+
+    // TODO: Log errors from err.
+    // TODO: Return a different status code if err is not empty.
+
+    let res = Response::builder()
+        .status(200)
+        .header("Content-Type", "text/plain")
+        .body(str::from_utf8(&out).unwrap().to_string().into())
+        .unwrap();
+
+    Ok(res)
+}
+
+fn main() -> std::io::Result<()> {
+    env_logger::init();
+
+    // TODO: Add clap commands for running in:
+    // 1. Batch mode
+    // 2. REPL mode
+    // 3. Server mode
+
+    App::new()
+        .at("/", post(handler_service(index)))
+        .enclosed(Logger::new())
+        .serve()
+        .bind("0.0.0.0:8080")?
+        .run()
+        .wait()
 }
