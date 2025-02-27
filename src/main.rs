@@ -12,6 +12,7 @@ use parser::Parser;
 
 use xitca_web::{
     body::ResponseBody,
+    error::ErrorStatus,
     handler::{handler_service, json::LazyJson},
     http::Response,
     middleware::Logger,
@@ -29,9 +30,13 @@ async fn index(
 ) -> Result<Response<ResponseBody>, xitca_web::error::Error> {
     let BirlRequest { code } = req.deserialize()?;
 
-    // TODO: Handle these errors.
-    let tokens = Lexer::new(&code).lex().unwrap();
-    let ast = Parser::new(tokens).parse().unwrap();
+    let tokens = Lexer::new(&code)
+        .lex()
+        .map_err(|_e| ErrorStatus::bad_request())?;
+
+    let ast = Parser::new(tokens)
+        .parse()
+        .map_err(|_e| ErrorStatus::bad_request())?;
 
     let mut out = Vec::new();
     let mut err = Vec::new();
