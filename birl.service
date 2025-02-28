@@ -1,0 +1,10 @@
+[Unit]
+Description=BIRL language interpreter
+After=network.target
+
+[Service]
+ExecStart=/home/aloussase/birl-bot/birl
+Type=simple
+
+[Install]
+WantedBy=default.target
